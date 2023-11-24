@@ -788,6 +788,7 @@ function signal(value: Exclude<HttpRequestOptions['signal'], undefined>): AbortS
 export async function discoveryRequest(
   issuerIdentifier: URL,
   options?: DiscoveryRequestOptions,
+  _fetch: typeof fetch = fetch,
 ): Promise<Response> {
   if (!(issuerIdentifier instanceof URL)) {
     throw new TypeError('"issuerIdentifier" must be an instance of URL')
@@ -818,7 +819,7 @@ export async function discoveryRequest(
   const headers = prepareHeaders(options?.headers)
   headers.set('accept', 'application/json')
 
-  return fetch(url.href, {
+  return _fetch(url.href, {
     headers,
     method: 'GET',
     redirect: 'manual',
@@ -1628,6 +1629,7 @@ export async function protectedResourceRequest(
   headers: Headers,
   body: RequestInit['body'],
   options?: ProtectedResourceRequestOptions,
+  _fetch: typeof fetch = fetch,
 ): Promise<Response> {
   if (!validateString(accessToken)) {
     throw new TypeError('"accessToken" must be a non-empty string')
@@ -1653,7 +1655,7 @@ export async function protectedResourceRequest(
     headers.set('authorization', `DPoP ${accessToken}`)
   }
 
-  return fetch(url.href, {
+  return _fetch(url.href, {
     body,
     headers,
     method,
@@ -1965,11 +1967,12 @@ async function authenticatedRequest(
   body: URLSearchParams,
   headers: Headers,
   options?: Omit<HttpRequestOptions, 'headers'> & AuthenticatedRequestOptions,
+  _fetch: typeof fetch = fetch,
 ) {
   await clientAuthentication(as, client, body, headers, options?.clientPrivateKey)
   headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8')
 
-  return fetch(url.href, {
+  return _fetch(url.href, {
     body,
     headers,
     method,
@@ -2844,6 +2847,7 @@ export async function processIntrospectionResponse(
 async function jwksRequest(
   as: AuthorizationServer,
   options?: HttpRequestOptions,
+  _fetch: typeof fetch = fetch,
 ): Promise<Response> {
   assertAs(as)
 
@@ -2857,7 +2861,7 @@ async function jwksRequest(
   headers.set('accept', 'application/json')
   headers.append('accept', 'application/jwk-set+json')
 
-  return fetch(url.href, {
+  return _fetch(url.href, {
     headers,
     method: 'GET',
     redirect: 'manual',
